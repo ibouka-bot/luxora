@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luxora — L'élégance à votre portée</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --gold:#C9A84C; --gold-l:#E8D5A3; --gold-d:#A07830;
+  --ink:#080808; --ink2:#111; --ink3:#1B1B1B; --ink4:#242424;
+  --cream:#F5F0E8; --gray:#666;
+}
+html { scroll-behavior:smooth; }
+body { background:var(--ink); color:var(--cream); font-family:'DM Sans',sans-serif; font-weight:300; overflow-x:hidden; }
+::selection { background:var(--gold); color:var(--ink); }
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:var(--ink2); }
+::-webkit-scrollbar-thumb { background:var(--gold-d); border-radius:4px; }
+
+/* NAV */
+nav {
+  position:sticky; top:0; z-index:200;
+  background:rgba(8,8,8,0.96); backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(201,168,76,0.18);
+  padding:0 3rem; height:72px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.logo { font-family:'Playfair Display',serif; font-size:1.9rem; font-weight:400; letter-spacing:0.25em; text-transform:uppercase; color:var(--gold); text-decoration:none; }
+.logo em { font-style:normal; color:var(--cream); }
+.nav-links { display:flex; gap:2rem; list-style:none; }
+.nav-links a { color:rgba(245,240,232,0.55); text-decoration:none; font-size:0.68rem; letter-spacing:0.18em; text-transform:uppercase; transition:color 0.25s; }
+.nav-links a:hover { color:var(--gold); }
+.cart-btn { background:transparent; border:1px solid var(--gold); color:var(--gold); padding:0.55rem 1.4rem; font-size:0.65rem; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:500; transition:all 0.3s; display:flex; align-items:center; gap:0.5rem; }
+.cart-btn:hover { background:var(--gold); color:var(--ink); }
+.cart-count { background:var(--gold); color:var(--ink); border-radius:50%; width:18px; height:18px; font-size:0.6rem; display:flex; align-items:center; justify-content:center; font-weight:700; }
+.cart-btn:hover .cart-count { background:var(--ink); color:var(--gold); }
+
+/* CART */
+.cart-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:300; opacity:0; pointer-events:none; transition:opacity 0.35s; backdrop-filter:blur(4px); }
+.cart-overlay.open { opacity:1; pointer-events:all; }
+.cart-sidebar { position:fixed; top:0; right:-460px; width:460px; max-width:100vw; height:100vh; background:var(--ink2); border-left:1px solid rgba(201,168,76,0.15); z-index:400; transition:right 0.4s cubic-bezier(0.22,1,0.36,1); display:flex; flex-direction:column; }
+.cart-sidebar.open { right:0; }
+.cart-header { display:flex; align-items:center; justify-content:space-between; padding:1.8rem 2rem 1.2rem; border-bottom:1px solid rgba(201,168,76,0.12); }
+.cart-header h3 { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:400; letter-spacing:0.15em; text-transform:uppercase; color:var(--gold); }
+.cart-close { background:transparent; border:1px solid rgba(201,168,76,0.25); color:var(--cream); width:36px; height:36px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.25s; font-size:1rem; }
+.cart-close:hover { border-color:var(--gold); color:var(--gold); transform:rotate(90deg); }
+.cart-items { flex:1; overflow-y:auto; padding:1rem 2rem; }
+.cart-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:200px; color:rgba(245,240,232,0.25); font-size:0.72rem; letter-spacing:0.15em; text-transform:uppercase; gap:1rem; }
+.cart-empty-icon { font-size:2.5rem; opacity:0.3; }
+.cart-item { display:flex; gap:1rem; padding:1.2rem 0; border-bottom:1px solid rgba(201,168,76,0.07); align-items:center; }
+.cart-item-img { width:72px; height:72px; object-fit:cover; background:var(--ink3); flex-shrink:0; }
+.cart-item-info { flex:1; }
+.cart-item-name { font-family:'Playfair Display',serif; font-size:0.9rem; color:var(--cream); margin-bottom:0.3rem; line-height:1.35; }
+.cart-item-price { color:var(--gold); font-size:0.78rem; font-weight:500; }
+.cart-item-controls { display:flex; align-items:center; gap:0.5rem; margin-top:0.5rem; }
+.qty-btn { background:transparent; border:1px solid rgba(201,168,76,0.25); color:var(--cream); width:26px; height:26px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; font-size:1rem; }
+.qty-btn:hover { border-color:var(--gold); color:var(--gold); }
+.qty-num { font-size:0.8rem; min-width:22px; text-align:center; }
+.cart-item-delete { background:transparent; border:none; color:rgba(245,240,232,0.25); cursor:pointer; font-size:1rem; padding:0.2rem; transition:color 0.2s; margin-left:auto; }
+.cart-item-delete:hover { color:#e05555; }
+.cart-footer { padding:1.5rem 2rem; border-top:1px solid rgba(201,168,76,0.12); }
+.cart-total-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.4rem; }
+.cart-total-label { font-size:0.65rem; letter-spacing:0.18em; text-transform:uppercase; color:rgba(245,240,232,0.4); }
+.cart-total-price { font-family:'Playfair Display',serif; font-size:1.5rem; color:var(--gold); }
+.checkout-btn { width:100%; background:var(--gold); color:var(--ink); border:none; padding:1rem; font-size:0.68rem; letter-spacing:0.2em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:500; transition:all 0.3s; margin-bottom:0.7rem; }
+.checkout-btn:hover { background:var(--gold-l); }
+.whatsapp-btn { width:100%; background:#128C7E; color:#fff; border:none; padding:1rem; font-size:0.68rem; letter-spacing:0.2em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:500; transition:all 0.3s; display:flex; align-items:center; justify-content:center; gap:0.5rem; }
+.whatsapp-btn:hover { background:#075E54; }
+
+/* HERO */
+.hero { min-height:92vh; display:flex; align-items:center; justify-content:center; text-align:center; padding:6rem 2rem; position:relative; overflow:hidden; background:var(--ink); }
+.hero-bg { position:absolute; inset:0; background: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(201,168,76,0.06) 0%, transparent 70%), radial-gradient(ellipse 40% 40% at 20% 80%, rgba(201,168,76,0.04) 0%, transparent 60%); }
+.hero-grid { position:absolute; inset:0; opacity:0.04; background-image: linear-gradient(rgba(201,168,76,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(201,168,76,0.8) 1px, transparent 1px); background-size:80px 80px; }
+.hero-content { position:relative; z-index:1; max-width:700px; }
+.hero-ornament { display:flex; align-items:center; justify-content:center; gap:1rem; margin-bottom:2.5rem; }
+.hero-ornament::before,.hero-ornament::after { content:''; width:60px; height:1px; background:linear-gradient(to right,transparent,var(--gold)); }
+.hero-ornament::after { background:linear-gradient(to left,transparent,var(--gold)); }
+.hero-ornament span { color:var(--gold); font-size:0.55rem; letter-spacing:0.4em; text-transform:uppercase; }
+.hero h1 { font-family:'Playfair Display',serif; font-size:clamp(3rem,7vw,5.5rem); font-weight:400; line-height:1.08; letter-spacing:0.04em; margin-bottom:1.5rem; }
+.hero h1 strong { display:block; font-weight:700; }
+.hero h1 em { font-style:italic; color:var(--gold); }
+.hero-sub { font-size:0.72rem; letter-spacing:0.35em; text-transform:uppercase; color:rgba(245,240,232,0.4); margin-bottom:3rem; }
+.hero-sub span { color:rgba(201,168,76,0.6); margin:0 0.5rem; }
+.hero-actions { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+.btn-primary { background:var(--gold); color:var(--ink); padding:0.9rem 2.5rem; font-size:0.68rem; letter-spacing:0.22em; text-transform:uppercase; text-decoration:none; font-family:'DM Sans',sans-serif; font-weight:500; border:none; cursor:pointer; transition:all 0.3s; display:inline-block; }
+.btn-primary:hover { background:var(--gold-l); transform:translateY(-2px); }
+.btn-outline { border:1px solid rgba(201,168,76,0.4); color:rgba(245,240,232,0.7); padding:0.9rem 2.5rem; font-size:0.68rem; letter-spacing:0.22em; text-transform:uppercase; text-decoration:none; font-family:'DM Sans',sans-serif; transition:all 0.3s; display:inline-block; }
+.btn-outline:hover { border-color:var(--gold); color:var(--gold); }
+.scroll-line { width:1px; height:50px; background:linear-gradient(to bottom,var(--gold),transparent); animation:scrollPulse 2s ease-in-out infinite; margin:2rem auto 0; }
+@keyframes scrollPulse { 0%,100%{opacity:0.3;} 50%{opacity:1;} }
+
+/* CAT NAV */
+.cat-nav { position:sticky; top:72px; z-index:100; background:rgba(8,8,8,0.95); backdrop-filter:blur(10px); border-bottom:1px solid rgba(201,168,76,0.12); display:flex; justify-content:center; flex-wrap:wrap; gap:0; overflow-x:auto; scrollbar-width:none; }
+.cat-nav::-webkit-scrollbar { display:none; }
+.cat-tab { background:transparent; border:none; border-bottom:2px solid transparent; color:rgba(245,240,232,0.45); padding:1rem 1.4rem; font-size:0.65rem; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif; white-space:nowrap; transition:all 0.25s; }
+.cat-tab:hover { color:var(--gold); background:rgba(201,168,76,0.04); }
+.cat-tab.active { color:var(--gold); border-bottom-color:var(--gold); }
+
+/* SECTION */
+.product-section { padding:5rem 0; }
+.product-section:nth-child(even) { background:rgba(201,168,76,0.015); }
+.section-head { display:flex; align-items:flex-end; justify-content:space-between; padding:0 3rem 3rem; max-width:1300px; margin:0 auto; }
+.section-eyebrow { font-size:0.6rem; letter-spacing:0.35em; text-transform:uppercase; color:var(--gold); opacity:0.7; margin-bottom:0.6rem; }
+.section-title { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,4vw,2.8rem); font-weight:400; line-height:1.1; }
+.section-title em { font-style:italic; color:var(--gold); }
+.section-line { display:flex; align-items:center; gap:0.8rem; margin-top:0.8rem; }
+.section-line::before { content:''; width:32px; height:1px; background:var(--gold); }
+.section-line span { font-size:0.62rem; letter-spacing:0.15em; text-transform:uppercase; color:rgba(245,240,232,0.3); }
+.section-count { font-family:'Playfair Display',serif; font-size:3rem; color:rgba(201,168,76,0.08); font-style:italic; line-height:1; }
+
+/* GRID */
+.grid { display:grid; gap:1px; background:rgba(201,168,76,0.08); max-width:1300px; margin:0 auto; padding:0 3rem; }
+.grid-3 { grid-template-columns:repeat(3,1fr); }
+.grid-4 { grid-template-columns:repeat(4,1fr); }
+.grid-5 { grid-template-columns:repeat(5,1fr); }
+
+/* CARD */
+.card { background:var(--ink2); position:relative; overflow:hidden; cursor:pointer; transition:transform 0.35s cubic-bezier(0.22,1,0.36,1), box-shadow 0.35s; display:flex; flex-direction:column; }
+.card:hover { transform:translateY(-6px); box-shadow:0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,168,76,0.2); z-index:2; }
+.card:hover .card-overlay { opacity:1; }
+.card-img-wrap { overflow:hidden; position:relative; aspect-ratio:1/1; flex-shrink:0; }
+.card-img { width:100%; height:100%; object-fit:cover; display:block; background:var(--ink3); transition:transform 0.6s cubic-bezier(0.22,1,0.36,1); }
+.card:hover .card-img { transform:scale(1.07); }
+.card-overlay { position:absolute; inset:0; background:linear-gradient(to top, rgba(8,8,8,0.92) 0%, rgba(8,8,8,0.3) 60%, transparent 100%); display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding:1.5rem; gap:0.6rem; opacity:0; transition:opacity 0.35s; }
+.overlay-add { width:100%; background:var(--gold); color:var(--ink); border:none; padding:0.7rem; font-size:0.62rem; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:500; transition:background 0.2s; transform:translateY(10px); transition:transform 0.35s 0.05s, background 0.2s; }
+.card:hover .overlay-add { transform:translateY(0); }
+.overlay-add:hover { background:var(--gold-l); }
+.overlay-detail { width:100%; background:transparent; color:var(--cream); border:1px solid rgba(245,240,232,0.3); padding:0.65rem; font-size:0.6rem; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif; transform:translateY(10px); transition:transform 0.35s 0.1s, border-color 0.2s; }
+.card:hover .overlay-detail { transform:translateY(0); }
+.overlay-detail:hover { border-color:var(--gold); color:var(--gold); }
+.card-info { padding:1.1rem 1rem; flex:1; display:flex; flex-direction:column; }
+.card-cat { font-size:0.58rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--gold); opacity:0.65; margin-bottom:0.35rem; }
+.card-name { font-family:'Playfair Display',serif; font-size:0.92rem; font-weight:400; color:var(--cream); line-height:1.35; flex:1; }
+.card-price { margin-top:0.7rem; display:flex; align-items:center; gap:0.6rem; }
+.card-old { font-size:0.7rem; color:var(--gray); text-decoration:line-through; }
+.card-cur { font-size:0.85rem; font-weight:500; color:var(--gold); }
+.badge { position:absolute; top:0.8rem; left:0.8rem; z-index:1; background:var(--gold); color:var(--ink); font-size:0.52rem; letter-spacing:0.12em; text-transform:uppercase; padding:0.3rem 0.65rem; font-weight:700; }
+.badge-new { background:var(--ink3); color:var(--gold); border:1px solid rgba(201,168,76,0.3); }
+
+/* TOAST */
+.toast { position:fixed; bottom:2.5rem; left:50%; transform:translateX(-50%) translateY(80px); background:var(--gold); color:var(--ink); padding:0.85rem 2rem; font-size:0.68rem; letter-spacing:0.15em; text-transform:uppercase; font-weight:500; z-index:600; transition:transform 0.3s cubic-bezier(0.22,1,0.36,1); white-space:nowrap; box-shadow:0 8px 30px rgba(201,168,76,0.3); }
+.toast.show { transform:translateX(-50%) translateY(0); }
+
+/* MODAL */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:500; opacity:0; pointer-events:none; transition:opacity 0.35s; backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:1.5rem; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal-box { background:var(--ink2); border:1px solid rgba(201,168,76,0.2); max-width:820px; width:100%; max-height:90vh; overflow-y:auto; display:grid; grid-template-columns:1fr 1fr; transform:translateY(30px) scale(0.97); transition:transform 0.4s cubic-bezier(0.22,1,0.36,1); position:relative; }
+.modal-overlay.open .modal-box { transform:translateY(0) scale(1); }
+.modal-img-wrap { aspect-ratio:1/1; overflow:hidden; background:var(--ink3); }
+.modal-img { width:100%; height:100%; object-fit:cover; display:block; }
+.modal-body { padding:2.5rem 2rem; display:flex; flex-direction:column; justify-content:space-between; }
+.modal-close { position:absolute; top:1rem; right:1rem; background:rgba(8,8,8,0.8); border:1px solid rgba(201,168,76,0.25); color:var(--cream); width:38px; height:38px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1.1rem; transition:all 0.25s; z-index:10; }
+.modal-close:hover { border-color:var(--gold); color:var(--gold); transform:rotate(90deg); }
+.modal-eyebrow { font-size:0.58rem; letter-spacing:0.3em; text-transform:uppercase; color:var(--gold); opacity:0.7; margin-bottom:0.6rem; }
+.modal-title { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:400; line-height:1.25; margin-bottom:1.2rem; }
+.modal-divider { width:40px; height:1px; background:var(--gold); opacity:0.4; margin-bottom:1.4rem; }
+.modal-desc { font-size:0.78rem; line-height:1.85; color:rgba(245,240,232,0.5); margin-bottom:1.8rem; }
+.modal-price-row { display:flex; align-items:center; gap:1rem; margin-bottom:2rem; }
+.modal-price-old { font-size:0.85rem; color:var(--gray); text-decoration:line-through; }
+.modal-price-cur { font-family:'Playfair Display',serif; font-size:1.7rem; color:var(--gold); }
+.modal-actions { display:flex; flex-direction:column; gap:0.7rem; }
+.modal-add-btn { background:var(--gold); color:var(--ink); border:none; padding:1rem; font-size:0.68rem; letter-spacing:0.2em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:500; transition:background 0.25s; }
+.modal-add-btn:hover { background:var(--gold-l); }
+.modal-wa-btn { background:transparent; color:var(--cream); border:1px solid rgba(245,240,232,0.15); padding:1rem; font-size:0.68rem; letter-spacing:0.2em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.25s; display:flex; align-items:center; justify-content:center; gap:0.5rem; }
+.modal-wa-btn:hover { border-color:var(--gold); color:var(--gold); }
+
+/* FOOTER */
+footer { background:var(--ink2); border-top:1px solid rgba(201,168,76,0.12); padding:4rem 3rem 3rem; }
+.footer-inner { max-width:1300px; margin:0 auto; }
+.footer-top { display:grid; grid-template-columns:1.5fr 1fr 1fr; gap:4rem; margin-bottom:3rem; }
+.footer-logo { font-family:'Playfair Display',serif; font-size:2rem; letter-spacing:0.25em; color:var(--gold); text-transform:uppercase; margin-bottom:0.8rem; }
+.footer-tagline { font-size:0.65rem; letter-spacing:0.22em; text-transform:uppercase; color:rgba(245,240,232,0.3); margin-bottom:1.2rem; }
+.footer-about { font-size:0.75rem; color:rgba(245,240,232,0.4); line-height:1.8; max-width:280px; }
+.footer-col-title { font-size:0.6rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--gold); margin-bottom:1.2rem; opacity:0.7; }
+.footer-links { display:flex; flex-direction:column; gap:0.7rem; }
+.footer-links a { color:rgba(245,240,232,0.35); text-decoration:none; font-size:0.72rem; transition:color 0.25s; }
+.footer-links a:hover { color:var(--gold); }
+.footer-bottom { padding-top:2rem; border-top:1px solid rgba(201,168,76,0.08); display:flex; align-items:center; justify-content:space-between; }
+.footer-copy { font-size:0.62rem; color:rgba(245,240,232,0.18); letter-spacing:0.12em; }
+.footer-socials { display:flex; gap:1rem; }
+.footer-socials a { color:rgba(245,240,232,0.25); text-decoration:none; font-size:0.62rem; letter-spacing:0.15em; text-transform:uppercase; transition:color 0.25s; }
+.footer-socials a:hover { color:var(--gold); }
+
+@media(max-width:1100px) { .grid-4{grid-template-columns:repeat(3,1fr);} .grid-5{grid-template-columns:repeat(4,1fr);} .footer-top{grid-template-columns:1fr 1fr;gap:2rem;} }
+@media(max-width:768px) { nav{padding:0 1.5rem;} .nav-links{display:none;} .grid-3,.grid-4,.grid-5{grid-template-columns:repeat(2,1fr);} .grid{padding:0 1rem;} .section-head{padding:0 1rem 2rem;flex-direction:column;align-items:flex-start;gap:1rem;} .product-section{padding:3rem 0;} .cart-sidebar{width:100vw;} .footer-top{grid-template-columns:1fr;gap:2rem;} .modal-box{grid-template-columns:1fr;} .footer-bottom{flex-direction:column;gap:1rem;text-align:center;} }
+@media(max-width:480px) { .grid-3,.grid-4,.grid-5{grid-template-columns:1fr 1fr;} }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="logo" href="#top">Lux<em>ora</em></a>
+  <ul class="nav-links">
+    <li><a href="#parfums">Parfums</a></li>
+    <li><a href="#maison">Maison</a></li>
+    <li><a href="#beaute">Beauté</a></li>
+    <li><a href="#bijoux">Bijoux</a></li>
+    <li><a href="#linge">Linge</a></li>
+    <li><a href="#cuisine">Cuisine</a></li>
+    <li><a href="#sacs">Sacs</a></li>
+  </ul>
+  <button class="cart-btn" id="cartBtn" onclick="openCart()">
+    <span>Panier</span>
+    <span class="cart-count" id="cartCount">0</span>
+  </button>
+</nav>
+
+<!-- CART SIDEBAR -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+<div class="cart-sidebar" id="cartSidebar">
+  <div class="cart-header">
+    <h3>Mon Panier</h3>
+    <button class="cart-close" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <div class="cart-empty" id="cartEmpty">
+      <div class="cart-empty-icon">✦</div>
+      <span>Votre panier est vide</span>
+    </div>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-total-row">
+      <span class="cart-total-label">Total estimé</span>
+      <span class="cart-total-price" id="cartTotal">0 FCFA</span>
+    </div>
+    <button class="checkout-btn" onclick="commander()">Confirmer la commande</button>
+    <button class="whatsapp-btn" onclick="commanderWhatsApp()">📱 Commander via WhatsApp</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">✓ Produit ajouté</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal-box" id="modalBox">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-img-wrap"><img class="modal-img" id="modalImg" src="" alt=""></div>
+    <div class="modal-body">
+      <div>
+        <div class="modal-eyebrow" id="modalCat"></div>
+        <div class="modal-title" id="modalName"></div>
+        <div class="modal-divider"></div>
+        <p class="modal-desc" id="modalDesc"></p>
+        <div class="modal-price-row">
+          <span class="modal-price-old" id="modalOld"></span>
+          <span class="modal-price-cur" id="modalCur"></span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-add-btn" onclick="addToCartFromModal()">Ajouter au panier</button>
+        <button class="modal-wa-btn" onclick="commanderWhatsAppSingle()">📱 Commander via WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-ornament"><span>collection 2026</span></div>
+    <h1><strong>L'élégance</strong><em>à votre portée</em></h1>
+    <p class="hero-sub">Parfums <span>·</span> Beauté <span>·</span> Bijoux <span>·</span> Maison <span>·</span> Sacs</p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="#parfums">Découvrir la collection</a>
+      <a class="btn-outline" href="#sacs">Sacs & Accessoires</a>
+    </div>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- CAT NAV -->
+<div class="cat-nav" id="catNav">
+  <button class="cat-tab active" onclick="filterSection('all',this)">Tout</button>
+  <button class="cat-tab" onclick="filterSection('parfum',this)">Parfums</button>
+  <button class="cat-tab" onclick="filterSection('maison',this)">Maison</button>
+  <button class="cat-tab" onclick="filterSection('beaute',this)">Beauté</button>
+  <button class="cat-tab" onclick="filterSection('bijoux',this)">Bijoux</button>
+  <button class="cat-tab" onclick="filterSection('linge',this)">Linge</button>
+  <button class="cat-tab" onclick="filterSection('cuisine',this)">Cuisine</button>
+  <button class="cat-tab" onclick="filterSection('sacs',this)">Sacs</button>
+</div>
+
+<!-- ══ PARFUMS ══ -->
+<section class="product-section" id="parfums" data-cat="parfum">
+  <div class="section-head">
+    <div>
+      <div class="section-eyebrow">✦ Collection</div>
+      <h2 class="section-title">Parfums & <em>Senteurs</em></h2>
+      <div class="section-line"><span>29 références</span></div>
+    </div>
+    <div class="section-count">01</div>
+  </div>
+  <div class="grid grid-4">
+
+    <div class="card" data-cat="parfum" data-name="Bleu de Chanel Paris 100ml" data-price="2500" data-img="images/bleudechanel.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/bleudechanel.jpeg" alt="Bleu de Chanel" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Parfum homme</div><div class="card-name">Bleu de Chanel Paris 100ml</div><div class="card-price"><span class="card-cur">2 500 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Bois d'Argent Clive & Keira 30ml" data-price="4500" data-img="images/parfunboid'argent.png">
+      <div class="card-img-wrap"><img class="card-img" src="images/parfunboid'argent.png" alt="Bois d'Argent" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Parfum unisexe</div><div class="card-name">Bois d'Argent Clive &amp; Keira 30ml</div><div class="card-price"><span class="card-cur">4 500 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Skandal Clive & Keira 30ml" data-price="5800" data-img="images/Parfum-Skandal-Clive-&-Keira-Collection-30ml.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Parfum-Skandal-Clive-&-Keira-Collection-30ml(for women).png" alt="Skandal" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Parfum femme</div><div class="card-name">Parfum Skandal Clive &amp; Keira 30ml</div><div class="card-price"><span class="card-cur">5 800 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Sauvaje Clive & Keira 30ml" data-price="5800" data-img="images/Parfum-Sauvaje-Clive&Keira-Collection-30ml(for men).jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Parfum-Sauvaje-Clive&Keira -Collection-30ml(for men).png" alt="Sauvaje" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Parfum homme</div><div class="card-name">Parfum Sauvaje Clive &amp; Keira 30ml</div><div class="card-price"><span class="card-cur">5 800 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Monogotas Fresa 250ml" data-price="1500" data-img="images/parfunmonogotas.png">
+      <div class="card-img-wrap"><img class="card-img" src="images/parfunmonogotas.png" alt="Monogotas Fresa" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Body mist</div><div class="card-name">Monogotas Fresa 250ml</div><div class="card-price"><span class="card-cur">1 500 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Monogotas Mora 100ml" data-price="1200" data-img="images/Parfum-Monogotas-Mora-100ml(mûre, sucré, frais).jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Parfum-Monogotas-Mora-100ml(mûre, sucré, frais).png" alt="Monogotas Mora" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Body mist</div><div class="card-name">Monogotas Mora 100ml</div><div class="card-price"><span class="card-cur">1 200 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Body Philosophy Cocktail Confetti 150ml" data-price="1700" data-img="images/Parfum-Body-Philosophy-Cocktail&Confetti-150ml.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Parfum-Body-Philosophy-Cocktail&Confetti-150ml .png" alt="Cocktail Confetti" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Brume parfumée</div><div class="card-name">Body Philosophy Cocktail &amp; Confetti 150ml</div><div class="card-price"><span class="card-cur">1 700 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Body Philosophy Candy Rainbow 250ml" data-price="1700" data-img="images/Parfum-Body-Philosophy-Candy-Rainbow-250ml.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Parfum-Body-Philosophy-Candy-Rainbow-250ml.png" alt="Candy Rainbow" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Brume parfumée</div><div class="card-name">Body Philosophy Candy Rainbow 250ml</div><div class="card-price"><span class="card-cur">1 700 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Zara Pink Flambé 90ml" data-price="3500" data-img="images/Parfum-Zara-Pink-Flambé-90ml(floral, vanille, ambre).jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Parfum-Zara-Pink-Flambé-90ml-(floral, vanille, ambre) .png" alt="Zara Pink Flambé" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Eau de parfum</div><div class="card-name">Zara Pink Flambé 90ml</div><div class="card-price"><span class="card-cur">3 500 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Zara Tuberose 90ml" data-price="3600" data-img="images/Parfum-Zara-Tuberose-90ml(EDT, floral, vanille, bois).jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Parfum-Zara-Tuberose-90ml(EDT, floral, vanille, bois).png" alt="Zara Tuberose" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Eau de toilette</div><div class="card-name">Zara Tuberose 90ml</div><div class="card-price"><span class="card-cur">3 600 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Zara Oriental Day Collection 90ml" data-price="3500" data-img="images/Parfum-Zara-Oriental-Day-Collection-90ml.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Parfum-Zara-Oriental-Day-Collection-90ml .png" alt="Zara Oriental" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Eau de parfum</div><div class="card-name">Zara Oriental Day Collection 90ml</div><div class="card-price"><span class="card-cur">3 500 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Coco Mademoiselle by Chanel 100ml Dupe" data-price="2800" data-img="images/Coco-Mademoiselle-by-Chanel-100ml=Dupe.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Coco-Mademoiselle-by-Chanel-100ml=Dupe.png" alt="Coco Mademoiselle" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Eau de parfum</div><div class="card-name">Coco Mademoiselle Chanel 100ml Dupe</div><div class="card-price"><span class="card-cur">2 800 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Parfum Cadeau A Wish" data-price="5200" data-img="images/Parfum-Cadeau-A-Wish-Lonkoom-(floral fruité, longue durée).jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Parfum-Cadeau-A-Wish-Lonkoom-(floral fruité, longue durée).png" alt="A Wish" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Eau de parfum</div><div class="card-name">Parfum Cadeau A Wish Lonkoom</div><div class="card-price"><span class="card-cur">5 200 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Victoria's Secret Bombshell 250ml" data-price="3200" data-img="images/Victoria's-Secret-Bombshell-250ml-(agrumes, fleurs).jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Victoria's-Secret-Bombshell-250ml-(agrumes, fleurs).png" alt="Bombshell" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Brume parfumée</div><div class="card-name">Victoria's Secret Bombshell 250ml</div><div class="card-price"><span class="card-cur">3 200 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Victoria's World In Bombshell 250ml" data-price="2000" data-img="images/Victoria's-World-In-Bombshell-250ml.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Victoria's-World-In-Bombshell-250ml.png" alt="In Bombshell" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Brume parfumée</div><div class="card-name">Victoria's World In Bombshell 250ml</div><div class="card-price"><span class="card-cur">2 000 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Victoria's World Fantsly 250ml" data-price="2000" data-img="images/Victoria's-World-Fantsly-250ml.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Victoria's-World-Fantsly-250ml.png" alt="Fantsly" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Brume parfumée</div><div class="card-name">Victoria's World Fantsly 250ml</div><div class="card-price"><span class="card-cur">2 000 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Victoria's World Sganodol 250ml" data-price="2000" data-img="images/Victoria's-World-Sganodol-Belle-Celine-250ml.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Victoria's-World-Sganodol-Belle-Celine-250ml.png" alt="Sganodol" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Brume parfumée</div><div class="card-name">Victoria's World Sganodol 250ml</div><div class="card-price"><span class="card-cur">2 000 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Body Mist Caramel Sensi 250ml" data-price="1300" data-img="images/Body-Mist-Caramel-Sensi-250ml.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Body-Mist-Caramel-Sensi-250ml.png" alt="Caramel Sensi" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Body mist</div><div class="card-name">Body Mist Caramel Sensi 250ml</div><div class="card-price"><span class="card-cur">1 300 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Body Mist Flowers Sensi 250ml" data-price="1300" data-img="images/Body-MistFlowers-Sensi-250ml.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Body-MistFl-owers-Sensi-250m.png" alt="Flowers Sensi" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Body mist</div><div class="card-name">Body Mist Flowers Sensi 250ml</div><div class="card-price"><span class="card-cur">1 300 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="La Vie Est Belle pour Femme 100ml" data-price="3200" data-img="images/Parfum-La-Vie-Est-Belle-pour-Femme-100ml.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Parfum-La-Vie-Est-Belle-pour-Femme-100ml.png" alt="La Vie Est Belle" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Eau de parfum</div><div class="card-name">La Vie Est Belle pour Femme 100ml</div><div class="card-price"><span class="card-cur">3 200 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Bushra Naseem 80ml" data-price="5000" data-img="images/Parfum-Lacté-Bushra-Naseem-80ml.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Parfum-Lacté-Bushra-Naseem-80ml.png" alt="Bushra Naseem" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Aqua perfume</div><div class="card-name">Parfum Lacté Bushra Naseem 80ml</div><div class="card-price"><span class="card-cur">5 000 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Burhan Naseem 80ml" data-price="5000" data-img="images/Parfum-Lacté-Burhan-Naseem-80ml.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Parfum-Lacté-Burhan-Naseem-80ml.png" alt="Burhan Naseem" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Aqua perfume</div><div class="card-name">Parfum Lacté Burhan Naseem 80ml</div><div class="card-price"><span class="card-cur">5 000 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Club de Nuit Femme Armaf 100ml" data-price="8000" data-img="images/Parfum-Club-de-Nuit-Femme-Armaf-100ml.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Parfum-Club-de-Nuit-Femme-Armaf-100ml .png" alt="Club de Nuit" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Eau de parfum femme</div><div class="card-name">Club de Nuit Femme Armaf 100ml</div><div class="card-price"><span class="card-cur">8 000 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Caméllia Blue 107 125ml" data-price="1600" data-img="images/Parfum-Camélia-Blue-107-125ml.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Parfum-Caméllia-Blue-107-125ml.png" alt="Caméllia Blue" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Eau de parfum</div><div class="card-name">Parfum Caméllia Blue 107 125ml</div><div class="card-price"><span class="card-cur">1 600 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Hanna's Secret White Pure 50ml" data-price="1500" data-img="images/Parfum-Hanna's-Secret-White-Pure-50ml(pour homme, éditi....jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Parfum-Hanna's-Secret-White-Pure-50ml(pour homme, édition limitée).png" alt="White Pure" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Eau de parfum homme</div><div class="card-name">Hanna's Secret White Pure 50ml</div><div class="card-price"><span class="card-cur">1 500 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Hanna's Secret Pink Romance 50ml" data-price="1500" data-img="images/Parfum-Hanna's-Secret-Pink-Romance-50ml.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Parfum-Hanna's-Secret-Pink-Romance-50ml.png" alt="Pink Romance" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Eau de parfum femme</div><div class="card-name">Hanna's Secret Pink Romance 50ml</div><div class="card-price"><span class="card-cur">1 500 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Coffret Parfum Homme Hanna's Secret" data-price="6000" data-img="images/Coffret Parfum Homme Hanna's Secret.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Coffret Parfum Homme Hanna's Secret.png" alt="Coffret Hanna's Secret" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Coffret parfum homme</div><div class="card-name">Coffret Parfum Homme Hanna's Secret</div><div class="card-price"><span class="card-cur">6 000 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="C2U Gardenia 50ml" data-price="1100" data-img="images/Eau-de-Parfum-C2U-Gardenia-50ml.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Eau-de-Parfum-C2U-Gardenia-50ml.png" alt="C2U Gardenia" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Eau de parfum</div><div class="card-name">C2U Gardenia 50ml</div><div class="card-price"><span class="card-cur">1 100 FCFA</span></div></div>
+    </div>
+
+    <div class="card" data-cat="parfum" data-name="Paquet 24 EDP Mélange Mousuf Yarah Ameeratr" data-price="10000" data-img="images/Paquet-24-EDP-Mélange-Mousuf-Yarah-Ameeratr-Al-Arab.jpeg">
+      <div class="card-img-wrap"><img class="card-img" src="images/Paquet-24-EDP-Mélange-Mousuf-Yarah-Ameeratr-Al-Arab.png" alt="Paquet 24 EDP" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div>
+      <div class="card-info"><div class="card-cat">Pack parfums orientaux</div><div class="card-name">Paquet 24 EDP Mélange Mousuf/Yarah/Ameeratr</div><div class="card-price"><span class="card-cur">10 000 FCFA</span></div></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ MAISON ══ -->
+<section class="product-section" id="maison" data-cat="maison">
+  <div class="section-head">
+    <div>
+      <div class="section-eyebrow">✦ Ambiance</div>
+      <h2 class="section-title">Parfums <em>Maison</em></h2>
+      <div class="section-line"><span>7 références</span></div>
+    </div>
+    <div class="section-count">02</div>
+  </div>
+  <div class="grid grid-4">
+    <div class="card" data-cat="maison" data-name="Bel Air Lavande 400ml" data-price="900" data-img="images/parfundecambrelavande.png"><div class="card-img-wrap"><img class="card-img" src="images/parfundecambrelavande.png" alt="Bel Air Lavande" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Parfum d'ambiance</div><div class="card-name">Bel Air Lavande 400ml</div><div class="card-price"><span class="card-cur">900 FCFA</span></div></div></div>
+    <div class="card" data-cat="maison" data-name="Bel Air Rose 500ml" data-price="900" data-img="images/parfundechambrebelair.png"><div class="card-img-wrap"><img class="card-img" src="images/parfundechambrebelair.png" alt="Bel Air Rose" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Parfum d'ambiance</div><div class="card-name">Bel Air Rose 500ml</div><div class="card-price"><span class="card-cur">900 FCFA</span></div></div></div>
+    <div class="card" data-cat="maison" data-name="Zahra Air Freshener 300ml" data-price="1400" data-img="images/parfundechambrezahra.png"><div class="card-img-wrap"><img class="card-img" src="images/parfundechambrezahra.png" alt="Zahra" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Parfum d'ambiance</div><div class="card-name">Zahra Air Freshener 300ml</div><div class="card-price"><span class="card-cur">1 400 FCFA</span></div></div></div>
+    <div class="card" data-cat="maison" data-name="Aromaso Mouzuf Azure 300ml" data-price="1200" data-img="images/parfundechambremouzuf.png"><div class="card-img-wrap"><img class="card-img" src="images/parfundechambremouzuf.png" alt="Mouzuf Azure" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Parfum d'ambiance</div><div class="card-name">Aromaso Mouzuf Azure 300ml</div><div class="card-price"><span class="card-cur">1 200 FCFA</span></div></div></div>
+    <div class="card" data-cat="maison" data-name="Aromaso Mouzuf Rose 300ml" data-price="1200" data-img="images/pardundechambrearomasomouzuf.png"><div class="card-img-wrap"><img class="card-img" src="images/pardundechambrearomasomouzuf.png" alt="Mouzuf Rose" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Parfum d'ambiance</div><div class="card-name">Aromaso Mouzuf Rose 300ml</div><div class="card-price"><span class="card-cur">1 200 FCFA</span></div></div></div>
+    <div class="card" data-cat="maison" data-name="Aromaso Dear Love 300ml" data-price="1200" data-img="images/Parfum de Chambre Aromaso Dear' Love.png"><div class="card-img-wrap"><img class="card-img" src="images/Parfum de Chambre Aromaso Dear' Love.png" alt="Dear Love" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Parfum d'ambiance</div><div class="card-name">Aromaso Dear' Love 300ml</div><div class="card-price"><span class="card-cur">1 200 FCFA</span></div></div></div>
+    <div class="card" data-cat="maison" data-name="Nova Oriental 500ml" data-price="900" data-img="images/Parfum de Chambre Nova Oriental 500ml.png"><div class="card-img-wrap"><img class="card-img" src="images/Parfum de Chambre Nova Oriental 500ml.png" alt="Nova Oriental" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Parfum d'ambiance</div><div class="card-name">Nova Oriental 500ml</div><div class="card-price"><span class="card-cur">900 FCFA</span></div></div></div>
+  </div>
+</section>
+
+<!-- ══ BEAUTÉ ══ -->
+<section class="product-section" id="beaute" data-cat="beaute">
+  <div class="section-head">
+    <div>
+      <div class="section-eyebrow">✦ Soin & Maquillage</div>
+      <h2 class="section-title">Beauté <em>Sublimée</em></h2>
+      <div class="section-line"><span>16 références</span></div>
+    </div>
+    <div class="section-count">03</div>
+  </div>
+  <div class="grid grid-4">
+
+    <div class="card" data-cat="beaute" data-name="Eau Micellaire Mayana 500ml" data-price="3900" data-img="images/Eau-Micellaire-Mayana-500ml.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Eau-Micellaire-Mayana-500ml.png" alt="Eau Micellaire" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Soin visage</div><div class="card-name">Eau Micellaire Mayana 500ml</div><div class="card-price"><span class="card-cur">3 900 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="beaute" data-name="Gel Douche Gommant Mayana 500ml" data-price="3500" data-img="images/Gel-Douche-Gommant-Mayana-500ml.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Gel-Douche-Gommant-Mayana-500ml.png" alt="Gel Douche Mayana" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Soin corps</div><div class="card-name">Gel Douche Gommant Mayana 500ml</div><div class="card-price"><span class="card-cur">3 500 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="beaute" data-name="Lait de Corps Unifiant Mayana 500ml" data-price="8900" data-img="images/Lait-de-Corps-Unifiant-Hydratant-Mayana500ml.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Lait-de-Corps-Unifiant-Hydratant-Mayana500ml.png" alt="Lait Mayana" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Soin corps</div><div class="card-name">Lait de Corps Unifiant Mayana 500ml</div><div class="card-price"><span class="card-cur">8 900 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="beaute" data-name="Huile Nourrissante Mayana 125ml" data-price="3250" data-img="images/Huile-Nourrissante-Mayana-125m.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Huile-Nourrissante-Mayana-125m.png" alt="Huile Nourrissante" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Soin corps</div><div class="card-name">Huile Nourrissante Mayana 125ml</div><div class="card-price"><span class="card-cur">3 250 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="beaute" data-name="Savon Mayana Aloe Vera 225g" data-price="3900" data-img="images/Savon-Mayana-Aloe-Vera-225g(hydratant,régénérateur,prote....jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Savon-Mayana-Aloe-Vera-225g (hydratant,régénérateur,protecteur).png" alt="Savon Aloe Vera" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Savon surgras</div><div class="card-name">Savon Mayana Aloe Vera 225g</div><div class="card-price"><span class="card-cur">3 900 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="beaute" data-name="Beurre de Karité Katiopa 200g" data-price="1650" data-img="images/Beurre-de-Karité-Pur-Katiopa-200g.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Beurre-de-Karité-Pur-Katiopa-200g.png" alt="Beurre Karité" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Soin naturel</div><div class="card-name">Beurre de Karité Pur Katiopa 200g</div><div class="card-price"><span class="card-cur">1 650 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="beaute" data-name="Huile d'Avocat Katiopa 60ml" data-price="1950" data-img="images/Huile-d'Avocat-Katiopa-60ml.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Huile-d'Avocat-Katiopa-60ml.png" alt="Huile Avocat" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Huile végétale</div><div class="card-name">Huile d'Avocat Katiopa 60ml</div><div class="card-price"><span class="card-cur">1 950 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="beaute" data-name="Huile de Baobab Katiopa 50ml" data-price="2300" data-img="images/Huile-de-Baobab-Katiopa-50....jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Huile-de-Baobab-Katiopa-50ml .png" alt="Huile Baobab" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Huile végétale</div><div class="card-name">Huile de Baobab Katiopa 50ml</div><div class="card-price"><span class="card-cur">2 300 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="beaute" data-name="Huile de Coco Katiopa 60ml" data-price="2300" data-img="images/Huile-de-Coco-100%-Pure-Katiopa-60ml.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Huile-de-Coco-100%-Pure-Katiopa-60ml.png" alt="Huile Coco" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Huile végétale</div><div class="card-name">Huile de Coco 100% Pure Katiopa 60ml</div><div class="card-price"><span class="card-cur">2 300 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="beaute" data-name="Kit Sivoderm" data-price="1200" data-img="images/Kit-Sivoderm-(crème-de-soin+savon+lotion-an-ti-acné).jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Kit-Sivoderm-(crème-de-soin+savon+lotion-anti-acné.png" alt="Kit Sivoderm" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Soin anti-acné</div><div class="card-name">Kit Sivoderm Anti-Acné</div><div class="card-price"><span class="card-cur">1 200 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="beaute" data-name="Shampoing Wistful Huile d'Olive 750ml" data-price="1300" data-img="images/Shampoing-Wistful-à-base-d'Huile-d'Olive-750ml.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Shampoing-Wistful-à-base-d'Huile-d'Olive-750ml.png" alt="Shampoing Wistful" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Soin cheveux</div><div class="card-name">Shampoing Wistful Huile d'Olive 750ml</div><div class="card-price"><span class="card-cur">1 300 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="beaute" data-name="Déodorant Stick Dove Coco" data-price="2000" data-img="images/Déodorant-Stick-Dove-Coco.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Déodorant-Stick-Dove-Coco.png" alt="Déodorant Dove" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Déodorant</div><div class="card-name">Déodorant Stick Dove Coco 48h</div><div class="card-price"><span class="card-cur">2 000 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="beaute" data-name="Nettoie Visage Electrique 5 en 1" data-price="2250" data-img="images/Nettoie Visage Électrique 5 en 1.png"><div class="card-img-wrap"><img class="card-img" src="images/Nettoie Visage Électrique 5 en 1.png" alt="Nettoie Visage" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Soin visage</div><div class="card-name">Nettoie Visage Électrique 5 en 1</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="beaute" data-name="Topicrem DA Protect 500ml" data-price="9000" data-img="images/Lait de Corps Topicrem DA Protect 500ml.png"><div class="card-img-wrap"><img class="card-img" src="images/Lait de Corps Topicrem DA Protect 500ml.png" alt="Topicrem" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Soin corps</div><div class="card-name">Topicrem DA Protect 500ml</div><div class="card-price"><span class="card-cur">9 000 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="beaute" data-name="Pack Maquillage Teint Noir Lisa" data-price="7300" data-img="images/Pack Maquillage Teint Noir Lisa.png"><div class="card-img-wrap"><img class="card-img" src="images/Pack Maquillage Teint Noir Lisa.png" alt="Pack Maquillage" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Maquillage</div><div class="card-name">Pack Maquillage Teint Noir Lisa</div><div class="card-price"><span class="card-cur">7 300 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="beaute" data-name="Palette Fard 50 Couleurs IGOODCO" data-price="2000" data-img="images/Palette Fard 50 Couleurs IGOODCO.png"><div class="card-img-wrap"><img class="card-img" src="images/Palette Fard 50 Couleurs IGOODCO.png" alt="Palette IGOODCO" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Maquillage</div><div class="card-name">Palette Fard 50 Couleurs IGOODCO</div><div class="card-price"><span class="card-cur">2 000 FCFA</span></div></div></div>
+
+  </div>
+</section>
+
+<!-- ══ BIJOUX ══ -->
+<section class="product-section" id="bijoux" data-cat="bijoux">
+  <div class="section-head">
+    <div>
+      <div class="section-eyebrow">✦ Édition limitée</div>
+      <h2 class="section-title">Bijoux <em>Précieux</em></h2>
+      <div class="section-line"><span>2 références — Promotions en cours</span></div>
+    </div>
+    <div class="section-count">04</div>
+  </div>
+  <div class="grid grid-3">
+    <div class="card" data-cat="bijoux" data-name="Boucles d'Oreilles Éventail" data-price="2000" data-img="images/Boucles d'Oreilles Éventail.png"><div class="badge">Promo −50%</div><div class="card-img-wrap"><img class="card-img" src="images/Boucles d'Oreilles Éventail.png" alt="Boucles Eventail" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Bijoux</div><div class="card-name">Boucles d'Oreilles Éventail</div><div class="card-price"><span class="card-old">4 000 FCFA</span><span class="card-cur">2 000 FCFA</span></div></div></div>
+    <div class="card" data-cat="bijoux" data-name="Boucles d'Oreilles Plaquées Or" data-price="2000" data-img="images/Boucles d'Oreilles Plaquées Or.png"><div class="badge">Promo −55%</div><div class="card-img-wrap"><img class="card-img" src="images/Boucles d'Oreilles Plaquées Or.png" alt="Boucles Plaquées" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Bijoux</div><div class="card-name">Boucles d'Oreilles Plaquées Or</div><div class="card-price"><span class="card-old">4 500 FCFA</span><span class="card-cur">2 000 FCFA</span></div></div></div>
+  </div>
+</section>
+
+<!-- ══ LINGE ══ -->
+<section class="product-section" id="linge" data-cat="linge">
+  <div class="section-head">
+    <div>
+      <div class="section-eyebrow">✦ Linge de maison</div>
+      <h2 class="section-title">Draps <em>Joséphine</em></h2>
+      <div class="section-line"><span>20 coloris disponibles</span></div>
+    </div>
+    <div class="section-count">05</div>
+  </div>
+  <div class="grid grid-5">
+    <div class="card" data-cat="linge" data-name="Drap Josephine B02" data-price="2250" data-img="images/Drap 3 Pièces Joséphine B02 (240x250cm + 2 taies).png"><div class="card-img-wrap"><img class="card-img" src="images/Drap 3 Pièces Joséphine B02 (240x250cm + 2 taies).png" alt="B02" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm + 2 taies</div><div class="card-name">Joséphine B02</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine A51" data-price="2250" data-img="images/Drap 3 Pièces Joséphine A51 (gris à carreaux, 240x250cm).png"><div class="card-img-wrap"><img class="card-img" src="images/Drap 3 Pièces Joséphine A51 (gris à carreaux, 240x250cm).png" alt="A51" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm — Gris carreaux</div><div class="card-name">Joséphine A51</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine A24" data-price="2250" data-img="images/drap-josephine-a24.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/drap-josephine-a24.png" alt="A24" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm + 2 taies</div><div class="card-name">Joséphine A24</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine A28" data-price="2250" data-img="images/drap-josephine-a28.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/drap-josephine-a28.jpeg.png" alt="A28" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm + 2 taies</div><div class="card-name">Joséphine A28</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine A07" data-price="2250" data-img="images/drap-josephine-a07.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/drap-josephine-a07.jpeg.png" alt="A07" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm + 2 taies</div><div class="card-name">Joséphine A07</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine A40" data-price="2250" data-img="images/drap-josephine-a40.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/drap-josephine-a40.jpeg.png" alt="A40" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm + 2 taies</div><div class="card-name">Joséphine A40</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine A11" data-price="2250" data-img="images/drap-josephine-a11.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/drap-josephine-a11.jpeg.png" alt="A11" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm + 2 taies</div><div class="card-name">Joséphine A11</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine A04" data-price="2250" data-img="images/drap-josephine-a04.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/drap-josephine-a04.jpeg.png" alt="A04" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm + 2 taies</div><div class="card-name">Joséphine A04</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine A12" data-price="2250" data-img="images/drap-josephine-a12.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/drap-josephine-a12.jpeg.png" alt="A12" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm + 2 taies</div><div class="card-name">Joséphine A12</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine A41" data-price="2250" data-img="images/drap-josephine-a41.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/drap-josephine-a41.jpg" alt="A41" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm + 2 taies</div><div class="card-name">Joséphine A41</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine A35" data-price="2250" data-img="images/drap-josephine-a35.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/drap-josephine-a35.jpg" alt="A35" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm + 2 taies</div><div class="card-name">Joséphine A35</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine A23" data-price="2250" data-img="images/drap-josephine-a23.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/drap-josephine-a23.jpg" alt="A23" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm + 2 taies</div><div class="card-name">Joséphine A23</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine A01" data-price="2250" data-img="images/drap-josephine-a01.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/drap-josephine-a01.jpg" alt="A01" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm + 2 taies</div><div class="card-name">Joséphine A01</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine B01" data-price="2250" data-img="images/drap-josephine-b01.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/drap-josephine-b01.jpg" alt="B01" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm uni</div><div class="card-name">Joséphine B01</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine B03" data-price="2250" data-img="images/drap-josephine-b03.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/drap-josephine-b03.jpg" alt="B03" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm uni</div><div class="card-name">Joséphine B03</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine A53" data-price="2250" data-img="images/drap-josephine-a53.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/drap-josephine-a53.jpg" alt="A53" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm + 2 taies</div><div class="card-name">Joséphine A53</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Blanc Rafet Na" data-price="2500" data-img="images/drap-blanc-rafet-na.jpeg"><div class="badge badge-new">Nouveau</div><div class="card-img-wrap"><img class="card-img" src="images/drap-blanc-rafet-na.jpg" alt="Rafet Na" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">Blanc — 3 pièces</div><div class="card-name">Drap Blanc Rafet Na</div><div class="card-price"><span class="card-cur">2 500 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine B05" data-price="2250" data-img="images/drap-josephine-b05.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/drap-josephine-b05.jpg" alt="B05" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm uni</div><div class="card-name">Joséphine B05</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine B02" data-price="2250" data-img="images/Drap 3 Pièces Joséphine B02 (240x250cm + 2 taies).png"><div class="card-img-wrap"><img class="card-img" src="images/Drap 3 Pièces Joséphine B02 (240x250cm + 2 taies).png" alt="B02" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm + 2 taies</div><div class="card-name">Joséphine B02</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="linge" data-name="Drap Josephine A51 gris carreaux" data-price="2250" data-img="images/Drap 3 Pièces Joséphine A51 (gris à carreaux, 240x250cm).png"><div class="card-img-wrap"><img class="card-img" src="images/Drap 3 Pièces Joséphine A51 (gris à carreaux, 240x250cm).png" alt="A51" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter</button><button class="overlay-detail" onclick="openDetail(this)">Voir</button></div></div><div class="card-info"><div class="card-cat">240×250cm gris carreaux</div><div class="card-name">Joséphine A51</div><div class="card-price"><span class="card-cur">2 250 FCFA</span></div></div></div>
+  </div>
+</section>
+
+<!-- ══ CUISINE ══ -->
+<section class="product-section" id="cuisine" data-cat="cuisine">
+  <div class="section-head">
+    <div>
+      <div class="section-eyebrow">✦ Art de la table</div>
+      <h2 class="section-title">Cuisine & <em>Table</em></h2>
+      <div class="section-line"><span>11 références</span></div>
+    </div>
+    <div class="section-count">06</div>
+  </div>
+  <div class="grid grid-4">
+    <div class="card" data-cat="cuisine" data-name="Moule Cake Rond Silicone" data-price="950" data-img="images/moule-cake-silicone.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/moule-cake-silicone.jpeg.png" alt="Moule Cake" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Pâtisserie</div><div class="card-name">Moule à Cake Rond Gris Silicone</div><div class="card-price"><span class="card-cur">950 FCFA</span></div></div></div>
+    <div class="card" data-cat="cuisine" data-name="Lot 6 Verres Melamine Dore" data-price="1950" data-img="images/verres-melamine-dore.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/verres-melamine-dore.jpeg.png" alt="Verres Mélamine" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Art de la table</div><div class="card-name">Lot de 6 Verres Mélamine Doré</div><div class="card-price"><span class="card-cur">1 950 FCFA</span></div></div></div>
+    <div class="card" data-cat="cuisine" data-name="Set 6 Couteaux Zepter" data-price="4300" data-img="images/couteaux-zepter.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/couteaux-zepter.jpeg.png" alt="Couteaux Zepter" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Couteaux</div><div class="card-name">Set de 6 Couteaux Noirs Zepter</div><div class="card-price"><span class="card-cur">4 300 FCFA</span></div></div></div>
+    <div class="card" data-cat="cuisine" data-name="Presentoir Luxe 5 Parties" data-price="4250" data-img="images/presentoir-luxe.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/presentoir-luxe.jpeg.png" alt="Présentoir" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Décoration table</div><div class="card-name">Présentoir de Luxe 5 Parties</div><div class="card-price"><span class="card-cur">4 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="cuisine" data-name="Pack 6 Tasses Nafi 2" data-price="2000" data-img="images/tasses-nafi2.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/tasses-nafi2.jpeg.png" alt="Tasses Nafi" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Art de la table</div><div class="card-name">Pack de 6 Tasses Nafi 2</div><div class="card-price"><span class="card-cur">2 000 FCFA</span></div></div></div>
+    <div class="card" data-cat="cuisine" data-name="Hachoir Manuel Big Mac" data-price="3250" data-img="images/hachoir-big-mac.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/hachoir-big-mac.jpeg.png" alt="Hachoir" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Ustensiles</div><div class="card-name">Hachoir Manuel BIG MAC 1</div><div class="card-price"><span class="card-cur">3 250 FCFA</span></div></div></div>
+    <div class="card" data-cat="cuisine" data-name="Tabaski Pack Teranga 36pcs" data-price="12500" data-img="images/pack-teranga.jpeg"><div class="badge">Spécial</div><div class="card-img-wrap"><img class="card-img" src="images/pack-teranga.jpeg.png" alt="Pack Teranga" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Pack spécial Tabaski</div><div class="card-name">Pack Teranga 36 Pièces</div><div class="card-price"><span class="card-cur">12 500 FCFA</span></div></div></div>
+    <div class="card" data-cat="cuisine" data-name="Pot Conservation 17 Pieces Orange" data-price="4200" data-img="images/pot-conservation-orange.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/pot-conservation-orange.jpeg.png" alt="Pot Conservation" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Conservation alimentaire</div><div class="card-name">Pot Conservation 17 Pièces Orange</div><div class="card-price"><span class="card-cur">4 200 FCFA</span></div></div></div>
+    <div class="card" data-cat="cuisine" data-name="Coffret Couverts Premiere Dame 24 pcs" data-price="8000" data-img="images/coffret-couverts-premiere-dame.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/coffret-couverts-premiere-dame.jpg" alt="Coffret Couverts" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Couverts de table</div><div class="card-name">Coffret Couverts Première Dame 24 Pièces</div><div class="card-price"><span class="card-cur">8 000 FCFA</span></div></div></div>
+    <div class="card" data-cat="cuisine" data-name="Batteuse Electrique 300W" data-price="5500" data-img="images/batteuse-electrique-300w.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/batteuse-electrique-300w.jpg" alt="Batteuse" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Électroménager</div><div class="card-name">Batteuse Électrique 300W</div><div class="card-price"><span class="card-cur">5 500 FCFA</span></div></div></div>
+    <div class="card" data-cat="cuisine" data-name="Ensemble Couteau Ciseaux Epluche Legume" data-price="1500" data-img="images/ensemble-couteau-ciseaux.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/ensemble-couteau-ciseaux.jpg" alt="Ensemble Couteau" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Ustensiles</div><div class="card-name">Ensemble Couteau, Ciseaux &amp; Épluche Légume</div><div class="card-price"><span class="card-cur">1 500 FCFA</span></div></div></div>
+  </div>
+</section>
+
+<!-- ══ SACS ══ -->
+<section class="product-section" id="sacs" data-cat="sacs">
+  <div class="section-head">
+    <div>
+      <div class="section-eyebrow">✦ Accessoires mode</div>
+      <h2 class="section-title">Sacs & <em>Maroquinerie</em></h2>
+      <div class="section-line"><span>10 références</span></div>
+    </div>
+    <div class="section-count">07</div>
+  </div>
+  <div class="grid grid-4">
+
+    <div class="card" data-cat="sacs" data-name="Sac à Main Mathilde 3" data-price="4000" data-img="images/Sac-à-Main-Mathilde-3.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Sac-à-Main-Mathilde3 .png" alt="Mathilde 3" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Sac à main</div><div class="card-name">Sac à Main Mathilde 3</div><div class="card-price"><span class="card-cur">4 000 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="sacs" data-name="Sacoche Monica Gris Noir" data-price="3500" data-img="images/Sacoche-Monica-Gris-noir.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Sacoche-Monica-Gris-Noir.png" alt="Monica Noir" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Sacoche</div><div class="card-name">Sacoche Monica Gris Noir</div><div class="card-price"><span class="card-cur">3 500 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="sacs" data-name="Sacoche Monica Beige Fonce" data-price="3500" data-img="images/Sacoche-Monica-Beige-foncé.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Sacoche-Monica-Beige-Foncé.png" alt="Monica Beige Foncé" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Sacoche</div><div class="card-name">Sacoche Monica Beige Foncé</div><div class="card-price"><span class="card-cur">3 500 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="sacs" data-name="Sacoche Monica Beige Clair" data-price="3500" data-img="images/Sacoche-Monica-Beige-clair.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Sacoche-Monica-Beige-Clair .png" alt="Monica Beige Clair" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Sacoche</div><div class="card-name">Sacoche Monica Beige Clair</div><div class="card-price"><span class="card-cur">3 500 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="sacs" data-name="Sacoche Losyahs Noir" data-price="5500" data-img="images/Sacoche-Losyahs-Noir.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Sacoche-Losyahs-Noir.png" alt="Losyahs Noir" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Sacoche</div><div class="card-name">Sacoche Losyahs Noir</div><div class="card-price"><span class="card-cur">5 500 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="sacs" data-name="Sacoche 2 Pieces Argente Chacha" data-price="6000" data-img="images/Sacoche-2-pièces-argenté-chacha.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Sacoche-2-Pièces-Argenté-Chacha.png" alt="Chacha" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Sacoche 2 pièces</div><div class="card-name">Sacoche 2 Pièces Argenté Chacha</div><div class="card-price"><span class="card-cur">6 000 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="sacs" data-name="Sacoche Enfant Assyah 2" data-price="3000" data-img="images/Sacoche-pour-enfant-Assyah-2.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Sacoche-pour-Enfant-Assyah2.png" alt="Assyah 2" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Sacoche enfant</div><div class="card-name">Sacoche Enfant Assyah 2</div><div class="card-price"><span class="card-cur">3 000 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="sacs" data-name="Sac Bebe 4 Pieces Beige Rose" data-price="10000" data-img="images/Sac-pour-bébé-4pcs-beige-rose.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Sac-pour-Bébé-4-Pièces-Beige-Rose.png" alt="Sac Bébé Rose" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Sac bébé 4 pièces</div><div class="card-name">Sac pour Bébé Beige Rose</div><div class="card-price"><span class="card-cur">10 000 FCFA</span></div></div></div>
+
+    <div class="card" data-cat="sacs" data-name="Sac Bebe 4 Pieces Beige Noir" data-price="10000" data-img="images/Sac-pour-bébé-4pcs-beige-noir.jpeg"><div class="card-img-wrap"><img class="card-img" src="images/Sac-pour-Bébé-4-Pièces-Beige-Noir.png" alt="Sac Bébé Noir" loading="lazy"><div class="card-overlay"><button class="overlay-add" onclick="addToCart(this)">Ajouter au panier</button><button class="overlay-detail" onclick="openDetail(this)">Voir les détails</button></div></div><div class="card-info"><div class="card-cat">Sac bébé 4 pièces</div><div class="card-name">Sac pour Bébé Beige Noir</div><div class="card-price"><span class="card-cur">10 000 FCFA</span></div></div></div>
+
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-logo">Luxora</div>
+        <div class="footer-tagline">L'élégance à votre portée</div>
+        <p class="footer-about">Votre boutique de référence à Dakar pour les parfums, la beauté, les bijoux, les sacs et les produits de maison de qualité. Livraison disponible.</p>
+      </div>
+      <div>
+        <div class="footer-col-title">Navigation</div>
+        <div class="footer-links">
+          <a href="#parfums">Parfums & Senteurs</a>
+          <a href="#maison">Parfums Maison</a>
+          <a href="#beaute">Beauté & Soin</a>
+          <a href="#bijoux">Bijoux</a>
+          <a href="#linge">Linge de Maison</a>
+          <a href="#cuisine">Cuisine & Table</a>
+          <a href="#sacs">Sacs & Accessoires</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Informations</div>
+        <div class="footer-links">
+          <a href="#">À propos de Luxora</a>
+          <a href="#">Politique de livraison</a>
+          <a href="#">Retours & échanges</a>
+          <a href="#">Nous contacter</a>
+          <a href="#">Commander via WhatsApp</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2026 Luxora · Dakar, Sénégal · Tous droits réservés</span>
+      <div class="footer-socials">
+        <a href="#">Instagram</a>
+        <a href="#">Facebook</a>
+        <a href="#">WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+let cart = [];
+let modalProduct = null;
+
+function openCart() {
+  document.getElementById('cartSidebar').classList.add('open');
+  document.getElementById('cartOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeCart() {
+  document.getElementById('cartSidebar').classList.remove('open');
+  document.getElementById('cartOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function addToCart(btn) {
+  const card = btn.closest('.card');
+  const name = card.dataset.name;
+  const price = parseInt(card.dataset.price);
+  const img = card.dataset.img;
+  const existing = cart.find(i => i.name === name);
+  if (existing) { existing.qty++; } else { cart.push({ name, price, img, qty: 1 }); }
+  updateCart();
+  showToast('✓ Ajouté au panier');
+  setTimeout(() => openCart(), 450);
+}
+
+function updateCart() {
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const count = cart.reduce((s, i) => s + i.qty, 0);
+  document.getElementById('cartCount').textContent = count;
+  document.getElementById('cartTotal').textContent = total.toLocaleString('fr-FR') + ' FCFA';
+  const container = document.getElementById('cartItems');
+  container.querySelectorAll('.cart-item').forEach(el => el.remove());
+  document.getElementById('cartEmpty').style.display = cart.length === 0 ? 'flex' : 'none';
+  cart.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = 'cart-item';
+    div.innerHTML = `
+      <img class="cart-item-img" src="${item.img}" alt="${item.name}" onerror="this.style.background='#222'">
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-price">${(item.price * item.qty).toLocaleString('fr-FR')} FCFA</div>
+        <div class="cart-item-controls">
+          <button class="qty-btn" onclick="changeQty(${idx},-1)">−</button>
+          <span class="qty-num">${item.qty}</span>
+          <button class="qty-btn" onclick="changeQty(${idx},1)">+</button>
+        </div>
+      </div>
+      <button class="cart-item-delete" onclick="removeItem(${idx})">×</button>`;
+    container.appendChild(div);
+  });
+}
+
+function changeQty(idx, delta) {
+  cart[idx].qty += delta;
+  if (cart[idx].qty <= 0) cart.splice(idx, 1);
+  updateCart();
+}
+function removeItem(idx) { cart.splice(idx, 1); updateCart(); }
+
+function commander() {
+  if (cart.length === 0) { showToast('⚠ Votre panier est vide'); return; }
+  alert('Merci pour votre commande ! Notre équipe vous contactera bientôt.');
+}
+
+function commanderWhatsApp() {
+  if (cart.length === 0) { showToast('⚠ Votre panier est vide'); return; }
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  let msg = '🛍 *Commande Luxora*\n\n';
+  cart.forEach(i => { msg += `• ${i.name} ×${i.qty} — ${(i.price * i.qty).toLocaleString('fr-FR')} FCFA\n`; });
+  msg += `\n💰 *Total : ${total.toLocaleString('fr-FR')} FCFA*\n\nDakar, Sénégal`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function filterSection(cat, btn) {
+  document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.product-section').forEach(sec => {
+    if (cat === 'all' || sec.dataset.cat === cat) {
+      sec.style.display = '';
+      if (cat !== 'all') sec.scrollIntoView({ behavior:'smooth', block:'start' });
+    } else { sec.style.display = 'none'; }
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+const catLabels = { parfum:'Parfum', maison:"Parfum d'ambiance", beaute:'Beauté & Soin', bijoux:'Bijoux', linge:'Linge de maison', cuisine:'Cuisine & Table', sacs:'Sacs & Accessoires' };
+const catDescs = {
+  parfum:'Une fragrance raffinée, soigneusement sélectionnée pour vous offrir une expérience olfactive unique. Idéale pour toutes les occasions.',
+  maison:"Diffusez une ambiance chaleureuse et apaisante dans votre intérieur. Ce parfum d'ambiance embaume chaque pièce avec délicatesse.",
+  beaute:'Prenez soin de vous avec ce produit de beauté soigneusement formulé pour sublimer votre peau et révéler votre éclat naturel.',
+  bijoux:'Un bijou élégant, conçu pour accompagner vos tenues du quotidien comme les grandes occasions.',
+  linge:'Ensemble 3 pièces (drap plat 240×250cm + 2 taies d\'oreiller). Tissu doux et résistant. Idéal pour un lit 2 personnes.',
+  cuisine:'Un article de qualité pour votre cuisine, alliant praticité et esthétique. Parfait pour équiper votre maison ou offrir en cadeau.',
+  sacs:'Un sac élégant et pratique, conçu pour sublimer vos tenues tout en restant fonctionnel au quotidien.'
+};
+
+function openDetail(btn) {
+  const card = btn.closest('.card');
+  const name = card.dataset.name;
+  const price = parseInt(card.dataset.price);
+  const img = card.dataset.img;
+  const cat = card.dataset.cat;
+  const oldEl = card.querySelector('.card-old');
+  modalProduct = { name, price, img };
+  document.getElementById('modalImg').src = img;
+  document.getElementById('modalImg').alt = name;
+  document.getElementById('modalCat').textContent = catLabels[cat] || cat;
+  document.getElementById('modalName').textContent = name;
+  document.getElementById('modalCur').textContent = price.toLocaleString('fr-FR') + ' FCFA';
+  document.getElementById('modalOld').textContent = oldEl ? oldEl.textContent : '';
+  document.getElementById('modalDesc').textContent = catDescs[cat] || 'Produit de qualité sélectionné par l\'équipe Luxora.';
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modalOverlay') && !e.target.closest('.modal-close')) return;
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function addToCartFromModal() {
+  if (!modalProduct) return;
+  const existing = cart.find(i => i.name === modalProduct.name);
+  if (existing) { existing.qty++; } else { cart.push({ ...modalProduct, qty: 1 }); }
+  updateCart();
+  showToast('✓ Ajouté au panier');
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  setTimeout(() => openCart(), 400);
+}
+
+function commanderWhatsAppSingle() {
+  if (!modalProduct) return;
+  const msg = `🛍 *Commande Luxora*\n\n• ${modalProduct.name} — ${modalProduct.price.toLocaleString('fr-FR')} FCFA\n\nDakar, Sénégal`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeCart(); } });
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; }
+  });
+}, { threshold: 0.05 });
+
+document.querySelectorAll('.card').forEach((card, i) => {
+  card.style.opacity = '0';
+  card.style.transform = 'translateY(24px)';
+  card.style.transition = `opacity 0.5s ease ${(i % 8) * 0.06}s, transform 0.5s ease ${(i % 8) * 0.06}s, box-shadow 0.35s`;
+  observer.observe(card);
+});
+</script>
+</body>
+</html>
